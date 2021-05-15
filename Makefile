@@ -1,13 +1,9 @@
-TARGET := libxml2-v2.9.2
+TARGET := c-ares-CVE-2016-5180 libxml2-v2.9.2 openssl-1.0.1f woff2-2016-05-06
 
-CFLAGS := -g -O2 
-CFLAGS_ASAN := -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope
+.PHONY: all
 
-all: libxml2-v2.9.2/main.o
-	./
+all: $(TARGET)
+	@
 
-src/libxml2-v2.9.2/libxml:
-	git checkout v2.9.2
-
-libxml2-v2.9.2/main.o: libxml2-v2.9.2/main.cpp
-	$(CC) $(CFLAGS) -c $^ -o $@
+$(TARGET): 
+	make --directory=src/$@
