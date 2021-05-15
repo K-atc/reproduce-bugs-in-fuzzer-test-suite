@@ -19,3 +19,6 @@
 [submodule "src/openssl-1.0.1f/openssl"]
 	path = src/openssl-1.0.1f/openssl
 	url = https://github.com/openssl/openssl.git
+[submodule "src/re2-2014-12-09/re2"]
+	path = src/re2-2014-12-09/re2
+	url = https://github.com/google/re2.git
