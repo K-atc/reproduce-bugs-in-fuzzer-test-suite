@@ -1,10 +1,13 @@
 TARGET := reproducer
 TARGET_NOASAN := $(TARGET).noasan
+PROJECT_ROOT_DIR := ../..
+CRASH_INPUT := $(PROJECT_ROOT_DIR)/fuzzer-test-suite/re2-2014-12-09/crash-a23ed2a04358b9c070c603a5af6ae2b34598664a
+INPUT_DIR := $(PROJECT_ROOT_DIR)/input/re2-2014-12-09
 
 EXTLIB_DIR_NAME := re2
-LIBXML2_LIB_DIR := $(EXTLIB_DIR_NAME)/obj/
+LIBXML2_LIB_DIR := $(EXTLIB_DIR_NAME)/obj
 EXTLIB_LIB := $(LIBXML2_LIB_DIR)/libre2.a
-FUZZER_TEST_SUITE_TARGET_CC := ../../fuzzer-test-suite/re2-2014-12-09/target.cc
+FUZZER_TEST_SUITE_TARGET_CC := $(PROJECT_ROOT_DIR)/fuzzer-test-suite/re2-2014-12-09/target.cc
 
 CFLAGS := -g
 CFLAGS_ASAN := $(CFLAGS) -fsanitize=address
@@ -35,6 +38,15 @@ $(TARGET): ../main.cpp $(EXTLIB_LIB)
 $(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_NOASAN))
 
+$(INPUT_DIR):
+	mkdir -p $@
+
+input: $(INPUT_DIR)
+	xxd $(CRASH_INPUT) | sed -e 's/00000000: 0027/00000000: 4141/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0-4141
+	xxd $(CRASH_INPUT) | sed -e 's/00000000: 0027/00000000: 4127/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0-4127
+
+check-input: input
+	find $(INPUT_DIR)/* | xargs -n1 ./$(TARGET)
 
 reproduce: $(TARGET)
-	./$(TARGET) ../../fuzzer-test-suite/re2-2014-12-09/crash-a23ed2a04358b9c070c603a5af6ae2b34598664a
+	./$(TARGET) $(CRASH_INPUT)
