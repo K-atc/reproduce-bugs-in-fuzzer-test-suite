@@ -13,3 +13,9 @@
 [submodule "src/woff2-2016-05-06/brotli"]
 	path = src/woff2-2016-05-06/brotli
 	url = https://github.com/google/brotli.git
+[submodule "src/c-ares-CVE-2016-5180/c-ares"]
+	path = src/c-ares-CVE-2016-5180/c-ares
+	url = https://github.com/c-ares/c-ares.git
+[submodule "src/openssl-1.0.1f/openssl"]
+	path = src/openssl-1.0.1f/openssl
+	url = https://github.com/openssl/openssl.git

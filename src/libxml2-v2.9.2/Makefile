@@ -29,7 +29,7 @@ define build_main
 	$(CXX) $(1) -I $(LIBXML2_DIR_NAME)/include \
 		$< $(FUZZER_TEST_SUITE_TARGET_CC) \
 		$(LIBXML2_LIB_ORIG) \
-		-static-libasan \
+		-static-libasan
 		-o $@
 endef
 
