@@ -30,7 +30,7 @@ int main(int argc, const char* argv[]) {
     struct stat file_stat;
     fstat(fileno(file), &file_stat);
     size_t buf_size = file_stat.st_size;
-    // printf("[*] Size of file %s: %ld\n", file_path, buf_size); // DEBUG:
+    printf("[*] main: Size of file %s: %ld\n", file_path, buf_size); // DEBUG:
 
     // Map file to read-only memory
     void *buf = mmap(NULL, buf_size, PROT_READ, MAP_SHARED, fileno(file), 0);
