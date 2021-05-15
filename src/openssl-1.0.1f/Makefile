@@ -32,10 +32,10 @@ define build_main
 		-o $@
 endef
 
-$(TARGET): main.cpp $(EXTLIB_LIB) runtime/
+$(TARGET): ../main.cpp $(EXTLIB_LIB) runtime/
 	$(call build_main,$(CFLAGS_ASAN))
 
-$(TARGET_NOASAN): main.cpp $(EXTLIB_LIB) runtime/
+$(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB) runtime/
 	$(call build_main,$(CFLAGS_NOASAN))
 
 

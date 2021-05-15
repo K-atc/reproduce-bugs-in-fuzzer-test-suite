@@ -44,10 +44,10 @@ $(EXTLIB_LIB_ASAN):
 $(EXTLIB_LIB_DIR)/$(EXTLIB_LIB_NOASAN_NAME): 
 	$(call build_lib,$(CFLAGS_NOASAN))
 
-$(TARGET): main.cpp $(EXTLIB_LIB_ASAN)
+$(TARGET): ../main.cpp $(EXTLIB_LIB_ASAN)
 	$(call build_main,$(CFLAGS_ASAN),$(EXTLIB_LIB_ASAN))
 
-$(TARGET_NOASAN): main.cpp $(EXTLIB_LIB_NOASAN)
+$(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB_NOASAN)
 	$(call build_main,$(CFLAGS_NOASAN),$(EXTLIB_LIB_NOASAN))
 
 

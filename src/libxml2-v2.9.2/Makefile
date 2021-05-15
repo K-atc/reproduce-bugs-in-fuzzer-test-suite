@@ -18,7 +18,7 @@ clean:
 
 $(LIBXML2_LIB_ORIG):
 	# cd $(LIBXML2_DIR_NAME) && git clean -dfx
-	# cd $(LIBXML2_DIR_NAME) && git checkout -f v2.9.2
+	cd $(LIBXML2_DIR_NAME) && git checkout -f v2.9.2
 	cd $(LIBXML2_DIR_NAME) && ./autogen.sh
 	cd $(LIBXML2_DIR_NAME) && CCLD="$(CC) $(CFLAGS)" ./configure \
 		--without-python --with-threads=no \
@@ -29,14 +29,14 @@ define build_main
 	$(CXX) $(1) -I $(LIBXML2_DIR_NAME)/include \
 		$< $(FUZZER_TEST_SUITE_TARGET_CC) \
 		$(LIBXML2_LIB_ORIG) \
-		-static-libasan
+		-static-libasan \
 		-o $@
 endef
 
-$(TARGET): main.cpp $(LIBXML2_LIB_ORIG)
+$(TARGET): ../main.cpp $(LIBXML2_LIB_ORIG)
 	$(call build_main,$(CFLAGS_ASAN))
 
-$(TARGET_NOASAN): main.cpp $(LIBXML2_LIB_ORIG)
+$(TARGET_NOASAN): ../main.cpp $(LIBXML2_LIB_ORIG)
 	$(call build_main,$(CFLAGS_NOASAN))
 
 

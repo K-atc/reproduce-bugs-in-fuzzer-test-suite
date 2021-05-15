@@ -48,10 +48,10 @@ $(EXTDEPLIB_OBJ_ENC): $(addprefix $(EXTDEPLIB_DIR_NAME)/enc/,$(BROTIL_ENC_CC))
 	$(call setup_extdeplib)
 	$(CXX) $(CXXFLAGS) -c $^
 
-$(TARGET): main.cpp $(EXTLIB_OBJ) $(EXTDEPLIB_OBJ)
+$(TARGET): ../main.cpp $(EXTLIB_OBJ) $(EXTDEPLIB_OBJ)
 	$(call build_main,$(CFLAGS_ASAN),$(EXTLIB_OBJ))
 
-$(TARGET_NOASAN): main.cpp $(EXTLIB_OBJ) $(EXTDEPLIB_OBJ)
+$(TARGET_NOASAN): ../main.cpp $(EXTLIB_OBJ) $(EXTDEPLIB_OBJ)
 	$(call build_main,$(CFLAGS),$(EXTLIB_OBJ))
 
 reproduce: $(TARGET)
