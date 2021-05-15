@@ -1,5 +1,6 @@
 SRC/
 BUILD/
+input/*/
 
 *.a
 *.o
