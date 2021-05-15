@@ -1,0 +1,15 @@
+[submodule "fuzzer-test-suite"]
+	path = fuzzer-test-suite
+	url = https://github.com/google/fuzzer-test-suite.git
+[submodule "src/libxml2-v2.9.2/libxml2"]
+	path = src/libxml2-v2.9.2/libxml2
+	url = https://gitlab.gnome.org/GNOME/libxml2.git
+[submodule "src/libarchive-2017-01-04/libarchive"]
+	path = src/libarchive-2017-01-04/libarchive
+	url = https://github.com/libarchive/libarchive.git
+[submodule "src/woff2-2016-05-06/woff2"]
+	path = src/woff2-2016-05-06/woff2
+	url = https://github.com/google/woff2.git
+[submodule "src/woff2-2016-05-06/brotli"]
+	path = src/woff2-2016-05-06/brotli
+	url = https://github.com/google/brotli.git
