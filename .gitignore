@@ -1,4 +1,7 @@
 SRC/
 BUILD/
 
+*.a
+*.o
 reproducer
+reproducer.noasan

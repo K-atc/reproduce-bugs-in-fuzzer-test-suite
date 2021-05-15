@@ -30,7 +30,10 @@ define setup_extdeplib
 endef
 
 define build_main
-	$(CXX) $(1) $^ $(FUZZER_TEST_SUITE_TARGET_CC) -I $(EXTLIB_DIR_NAME)/src -o $@
+	$(CXX) $(1) -I $(EXTLIB_DIR_NAME)/src \
+		$^ $(FUZZER_TEST_SUITE_TARGET_CC) \
+		-static-libasan \
+		-o $@
 endef
 
 $(EXTLIB_OBJ): $(addprefix $(EXTLIB_DIR_NAME)/src/,$(WOFF_SRC_FILES))
@@ -52,4 +55,4 @@ $(TARGET_NOASAN): main.cpp $(EXTLIB_OBJ) $(EXTDEPLIB_OBJ)
 	$(call build_main,$(CFLAGS),$(EXTLIB_OBJ))
 
 reproduce: $(TARGET)
-	./$(TARGET) ../../fuzzer-test-suite/libxml2-v2.9.2/crash-50b12d37d6968a2cd9eb3665d158d9a2fb1f6e28
+	./$(TARGET) ../../fuzzer-test-suite/woff2-2016-05-06/crash-696cb49b6d7f63e153a6605f00aceb0d7738971a
