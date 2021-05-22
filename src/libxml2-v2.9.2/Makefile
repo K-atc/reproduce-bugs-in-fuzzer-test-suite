@@ -13,13 +13,14 @@ MAKE_GCC_OLD := $(DOCKER_RUN_PREFIX) --workdir /app/src/libxml2-v2.9.2/$(LIBXML2
 # MAKE_CLANG := docker run --rm -it -u $(shell id -u ${USER}):$(shell id -g ${USER}) -v $(PWD)/../..:/app --workdir /app/src/libxml2-v2.9.2/$(LIBXML2_DIR_NAME) silkeh/clang:7 make
 ### NOTE: libxml requires gcc
 
-CXX := $(CXX_GCC_84)
+# CXX := $(CXX_GCC_84)
 CFLAGS := -g -fno-omit-frame-pointer
 CFLAGS_ASAN := $(CFLAGS) -fsanitize=address
 # CFLAGS_ASAN := $(CFLAGS) -fsanitize=address -fsanitize=array-bounds,bool,builtin,enum,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,unreachable,vla-bound,vptr
 CFLAGS_NOASAN := $(CFLAGS)
+# MAKE := $(MAKE_GCC_OLD)
 
-all: $(TARGET) $(TARGET_NOASAN)
+.PHONY: $(TARGET) $(TARGET_NOASAN)
 	@
 
 clean:
@@ -32,7 +33,7 @@ $(LIBXML2_LIB_ORIG):
 	cd $(LIBXML2_DIR_NAME) && ./configure \
 		--without-python --with-threads=no \
 		--with-zlib=no --with-lzma=no
-	cd $(LIBXML2_DIR_NAME) && $(MAKE_GCC_OLD) CFLAGS="$(CFLAGS) -fPIC" -j $(nproc)
+	cd $(LIBXML2_DIR_NAME) && $(MAKE) CFLAGS="$(CFLAGS) -fPIC" -j $(nproc)
 
 define build_main
 	$(CXX) $(1) -I $(LIBXML2_DIR_NAME)/include \
