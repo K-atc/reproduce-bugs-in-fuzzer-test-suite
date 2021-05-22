@@ -47,12 +47,14 @@ $(INPUT_DIR):
 
 
 input: $(INPUT_DIR)
+	@# NOTE: Change second msg_type to 0x1 (Client Hello) => not reproduced
+	@# NOTE: Change second msg_type to 0xa0 (???) => reproduced
 	( \
-		echo "00000000: 1603 0000 0301 0000 1603 0000 d0a0 ff00"; \
+		echo "00000000: 1603 0000 0301 0000 1603 0000 d0a1 0400"; \
 		echo "00000010: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 		echo "00000020: 0000 0000 0000 0000 0000 0000 0000 0000"; \
-		echo "00000030: 0000 0006 0000 0000 0000 0000 0f0f 0000"; \
-		echo "00000040: 000e 0028 0000 0000 0000 0000 0000 0000"; \
+		echo "00000030: 0000 0006 0000 0000 0000 0000 0404 0000"; \
+		echo "00000040: 000e 0004 0000 0000 0000 0000 0000 0000"; \
 		echo "00000050: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 		echo "00000060: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 		echo "00000070: 0000 0000 0000 0000 0000 0000 0000 0000"; \
@@ -63,8 +65,9 @@ input: $(INPUT_DIR)
 		echo "000000c0: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 		echo "000000d0: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 		echo "000000e0: 0000 0000 0000 0000 0000 0000 0000 0000"; \
-		# echo "000000f0: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 	 ) | xxd -r > $(INPUT_DIR)/minimum
+
+	cat $(CRASH_INPUT) | sed 's/^.\{8\}\(.*\)/\1/' > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).cut-from-offset-0-to-offset-7
 
 	xxd $(CRASH_INPUT) | sed -n 1,2p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-1f
 	xxd $(CRASH_INPUT) | sed -n 1,3p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-2f
