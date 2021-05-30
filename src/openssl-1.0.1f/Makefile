@@ -47,8 +47,9 @@ $(INPUT_DIR):
 
 
 input: $(INPUT_DIR)
-	@# NOTE: Change second msg_type to 0x1 (Client Hello) => not reproduced
-	@# NOTE: Change second msg_type to 0xa0 (???) => reproduced
+	@### Minimized crash input
+	@### NOTE: Change second msg_type to 0x1 (Client Hello) => not reproduced
+	@### NOTE: Change second msg_type to 0xa0 (???) => reproduced
 	( \
 		echo "00000000: 1603 0000 0301 0000 1603 0000 b0a1 0400"; \
 		echo "00000010: 0000 0000 0000 0000 0000 0000 0000 0000"; \
@@ -64,8 +65,18 @@ input: $(INPUT_DIR)
 		echo "000000b0: 0000 0000 0000 0000 0000 0000 0000 0000"; \
 	 ) | xxd -r > $(INPUT_DIR)/minimum
 
+	@### Non-crash inputs
+	xxd $(INPUT_DIR)/minimum | sed -e 's/00000000: \(.... .... .... .... .... ....\) ../00000000: \1 a0/' | xxd -r > $(INPUT_DIR)/minimum.offset-0c-a0
+	xxd $(INPUT_DIR)/minimum | sed -e 's/00000000: \(.... .... .... .... .... .... ..\)../00000000: \1 01/' | xxd -r > $(INPUT_DIR)/minimum.offset-0d-01
+	xxd $(INPUT_DIR)/minimum | sed -e 's/00000000: \(.... .... .... .... .... .... ....\) ../00000000: \1 03/' | xxd -r > $(INPUT_DIR)/minimum.offset-0e-03
+	xxd $(INPUT_DIR)/minimum.offset-0c-a0 | sed -e 's/00000000: \(.... .... .... .... .... .... ..\)../00000000: \1 01/' | xxd -r > $(INPUT_DIR)/minimum.offset-0c-a0.offset-0d-01
+	xxd $(INPUT_DIR)/minimum.offset-0c-a0.offset-0d-01 | sed -e 's/00000000: \(.... .... .... .... .... .... ....\) ../00000000: \1 03/' | xxd -r > $(INPUT_DIR)/minimum.offset-0c-a0.offset-0d-01.offset-0e-03
+
+
+	@### Check if first 8 bytes is required
 	cat $(CRASH_INPUT) | sed 's/^.\{8\}\(.*\)/\1/' > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).cut-from-offset-0-to-offset-7
 
+	@### Check required minimum length
 	xxd $(CRASH_INPUT) | sed -n 1,2p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-1f
 	xxd $(CRASH_INPUT) | sed -n 1,3p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-2f
 	xxd $(CRASH_INPUT) | sed -n 1,4p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-3f
@@ -76,14 +87,13 @@ input: $(INPUT_DIR)
 	xxd $(CRASH_INPUT) | sed -n 1,14p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-df
 	xxd $(CRASH_INPUT) | sed -n 1,15p | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).until-offset-ef
 
-	# xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301/00000000: 1603 0f20 0001/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-03-2000
-	# xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603/00000000: 1603 0f00 0301 2000 0003/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-06-200000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603 0700 dcad 29ad/00000000: 1603 0f00 0301 0000 1603 0700 dc01 29ad/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-01
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603 0700 dcad 29ad/00000000: 1603 0f00 0301 0000 1603 0700 0020 29ad/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-0020
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603 0700 dcad 29ad/00000000: 1603 0f00 0301 0000 1603 0700 dcad 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0e-0020
-	xxd $(CRASH_INPUT) | sed -e 's/00000010: adad/00000010: 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-10-0020
-	xxd $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-0020 | sed -e 's/00000010: adad/00000010: 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-0020.offset-10-0020
-	xxd $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0e-0020 | sed -e 's/00000010: adad/00000010: 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0e-0020.offset-10-0020
+	@### Check V2ClientHello corresponds this leak bug
+	@# xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603 0700 dcad 29ad/00000000: 1603 0f00 0301 0000 1603 0700 dc01 29ad/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-01
+	@# xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603 0700 dcad 29ad/00000000: 1603 0f00 0301 0000 1603 0700 0020 29ad/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-0020
+	@# xxd $(CRASH_INPUT) | sed -e 's/00000000: 1603 0f00 0301 0000 1603 0700 dcad 29ad/00000000: 1603 0f00 0301 0000 1603 0700 dcad 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0e-0020
+	@# xxd $(CRASH_INPUT) | sed -e 's/00000010: adad/00000010: 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-10-0020
+	@# xxd $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-0020 | sed -e 's/00000010: adad/00000010: 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0c-0020.offset-10-0020
+	@# xxd $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0e-0020 | sed -e 's/00000010: adad/00000010: 0020/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).offset-0e-0020.offset-10-0020
 
 check-input: input
 	find $(INPUT_DIR)/* | xargs -n1 ./$(TARGET)

@@ -3,6 +3,7 @@ TARGET_NOASAN := $(TARGET).noasan
 PROJECT_ROOT_DIR := ../..
 INPUT_DIR := $(PROJECT_ROOT_DIR)/input/woff2-2016-05-06
 CRASH_INPUT := $(PROJECT_ROOT_DIR)/fuzzer-test-suite/woff2-2016-05-06/crash-696cb49b6d7f63e153a6605f00aceb0d7738971a
+NORMAL_WOFF2_FILE := $(INPUT_DIR)/Roboto-Regular.woff2
 
 EXTLIB_DIR_NAME := woff2
 EXTDEPLIB_DIR_NAME := brotli
@@ -60,21 +61,42 @@ $(TARGET_NOASAN): ../main.cpp $(EXTLIB_OBJ) $(EXTDEPLIB_OBJ)
 $(INPUT_DIR):
 	mkdir -p $@
 
-$(INPUT_DIR)/OpenSans.woff:
-	curl -o $@ $$(curl -s -A "Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; Touch; .NET4.0E; .NET4.0C; .NET CLR 3.5.30729; .NET CLR 2.0.50727; .NET CLR 3.0.30729; Tablet PC 2.0; rv:11.0) like Gecko" https://fonts.googleapis.com/css?family=Open+Sans | grep -o https.*[.]woff)
+$(NORMAL_WOFF2_FILE):
+	curl -o $@ -L https://github.com/FontFaceKit/roboto/raw/v1.5.1/fonts/Regular/Roboto-Regular.woff2
 
-input: $(INPUT_DIR) $(INPUT_DIR)/OpenSans.woff
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0010 0000/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-1000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 1000/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-100000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 0010/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-10000000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 00CC/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-cc000000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 10CC/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-cc100000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 E0CC/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-cce00000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 EECC/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-ccee0000
-	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 F0CC/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-ccf00000
+input: $(INPUT_DIR) $(NORMAL_WOFF2_FILE)
+	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 0010/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-00000010
+	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 1000/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-00001000
+	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 EE00/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-0000ee00
+	xxd $(CRASH_INPUT) | sed -e 's/00000000: 774f 4632 0001 0000 0000 f0cc/00000000: 774f 4632 0001 0000 0000 F000/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).length-0000f000
+
+	@### Check if a field does not depends on bug
+	@#xxd $(CRASH_INPUT) | sed -e 's/00000010: 0002 80c4 0000 f069 0002 0000/00000010: 0002 80c4 0000 f069 0001 0000/' | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).major-version-1
 	
-	xxd $(INPUT_DIR)/OpenSans.woff | sed -e 's/00000000: 774f 4646 0001 0000 .... ..../00000000: 774f 4632 0001 0000 0000 F0CC/' | xxd -r > $(INPUT_DIR)/OpenSans.woff.length-ccf00000
-	xxd $(INPUT_DIR)/OpenSans.woff.length-ccf00000 | sed -e 's/00000010: 0000 69d0 .... ..../00000010: 0000 69d0 00 00 F0 69/' | xxd -r > $(INPUT_DIR)/OpenSans.woff.length-ccf00000.totalCompressedSize-69f00000
+	@### Check which field depends on bug
+	xxd $(NORMAL_WOFF2_FILE) | sed -e 's/00000040: 5409 833c 110c 0a87 dc24 86fb 730b 941e/00000040: 5409 833c 110c 0a87 dc24 8181 000b 941e/' | xxd -r > $(NORMAL_WOFF2_FILE).offset-4a-818100
+
+	@### Check if content length is required to reproduce bug
+	xxd $(CRASH_INPUT) | head -n 16 | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).trim-at-offset-0x100
+	xxd $(CRASH_INPUT) | head -n 256 | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).trim-at-offset-0x1000
+	xxd $(CRASH_INPUT) | head -n 512 | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).trim-at-offset-0x2000
+	xxd $(CRASH_INPUT) | head -n 1024 | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).trim-at-offset-0x4000
+	xxd $(CRASH_INPUT) | head -n 2048 | xxd -r > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).trim-at-offset-0x8000
+
+	@### Check if content body does not matter to reproduce bug
+	(xxd $(CRASH_INPUT) | head -n 3 | xxd -r; head -c 61596 /dev/urandom) > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).header-only.add-random-bytes
+	
+	(xxd $(CRASH_INPUT) | head -n 7 | xxd -r; head -c 61532 /dev/urandom) > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).WOFF2Header-and-TableDirectory-only.add-random-bytes
+	(xxd $(CRASH_INPUT) | head -n 7 | xxd -r; xxd $(NORMAL_WOFF2_FILE) | grep -v 000000[0-6]0 | xxd -r) > $(INPUT_DIR)/$(notdir $(CRASH_INPUT)).WOFF2Header-and-TableDirectory-only.add-rest-of-normal-woff2-file
+
+	@### Check if legitimate content body does not depends on bug
+	xxd $(NORMAL_WOFF2_FILE) | sed -e 's/00000000: 774f 4632 0001 0000 .... ..../00000000: 774f 4632 0001 0000 0000 f0cc/' | xxd -r > $(NORMAL_WOFF2_FILE).length-0000f0cc
+	xxd $(NORMAL_WOFF2_FILE).length-0000f0cc | sed -e 's/00000010: .... .... .... ..../00000010: 0002 80C4 0000 F069/' | xxd -r > $(NORMAL_WOFF2_FILE).length-0000f0cc.totalSfntSize-000280c4.totalCompressedSize-0000f069
+	@#(cat $(NORMAL_WOFF2_FILE).length-0000f0cc.totalSfntSize-000280c4.totalCompressedSize-0000f069; head -c 62000 /dev/urandom) > $(NORMAL_WOFF2_FILE).length-0000f0cc.totalSfntSize-000280c4.totalCompressedSize-0000f069.add-bulk-data
+
+
+check-input: input
+	find $(INPUT_DIR)/* | xargs -n1 ./$(TARGET)
 
 reproduce: $(TARGET)
 	./$(TARGET) $(CRASH_INPUT)

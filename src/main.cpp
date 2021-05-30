@@ -22,7 +22,7 @@ int main(int argc, const char* argv[]) {
     // Open file
     FILE* file = fopen(file_path, "rb");
     if (!file) {
-        perror("Cannot open");
+        perror("[!] main: Cannot open");
         exit(1);
     }
 

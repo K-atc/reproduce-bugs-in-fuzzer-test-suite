@@ -1,7 +1,11 @@
 SRC/
 BUILD/
+/external
 
 *.a
 *.o
 reproducer
 reproducer.noasan
+
+*.log
+*.pcap
