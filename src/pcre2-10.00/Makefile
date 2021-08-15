@@ -33,7 +33,7 @@ $(EXTLIB_DIR_NAME):
 
 define build_main
 	$(CXX) $(1) \
-		$^ $(FUZZER_TEST_SUITE_TARGET_CC) \
+		$(EXTLIB_LIB) $(FUZZER_TEST_SUITE_TARGET_CC) $^ \
 		-I $(EXTLIB_DIR_NAME)/src \
 		-Wl,--whole-archive \
 		-Wl,-no-whole-archive \
@@ -45,6 +45,7 @@ $(TARGET): ../main.cpp $(EXTLIB_LIB)
 
 $(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_NOASAN))
+	nm $@ | grep $(EXTLIB_DIR_NAME) > /dev/null
 
 $(INPUT_DIR):
 	mkdir -p $@
