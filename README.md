@@ -2,6 +2,11 @@ Reproduce bugs in https://github.com/google/fuzzer-test-suite
 ====
 
 
+Requirements
+----
+* LLVM 12
+
+
 How to build
 ----
 ### batch build

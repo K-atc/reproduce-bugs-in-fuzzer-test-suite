@@ -1,52 +1,50 @@
 TARGET := reproducer
 TARGET_NOASAN := $(TARGET).noasan
 
-LIBXML2_DIR_NAME := libxml2
-LIBXML2_LIB_DIR := $(LIBXML2_DIR_NAME)/.libs
-LIBXML2_LIB_ORIG := $(LIBXML2_LIB_DIR)/libxml2.a
+EXTLIB_DIR_NAME := libxml2
+EXTLIB_LIB := $(EXTLIB_DIR_NAME)/.libs/libxml2.a
 FUZZER_TEST_SUITE_TARGET_CC := ../../fuzzer-test-suite/libxml2-v2.9.2/target.cc
 
 DOCKER_RUN_PREFIX := docker run --rm -it -u $(shell id -u ${USER}):$(shell id -g ${USER}) -v $(PWD)/../..:/app
 CXX_GCC_74 := $(DOCKER_RUN_PREFIX) --workdir /app/src/libxml2-v2.9.2 gcc:7.4 g++
 CXX_GCC_84 := $(DOCKER_RUN_PREFIX) --workdir /app/src/libxml2-v2.9.2 gcc:8.4 g++
-MAKE_GCC_OLD := $(DOCKER_RUN_PREFIX) --workdir /app/src/libxml2-v2.9.2/$(LIBXML2_DIR_NAME) gcc:5.3 make
-# MAKE_CLANG := docker run --rm -it -u $(shell id -u ${USER}):$(shell id -g ${USER}) -v $(PWD)/../..:/app --workdir /app/src/libxml2-v2.9.2/$(LIBXML2_DIR_NAME) silkeh/clang:7 make
+MAKE_GCC_OLD := $(DOCKER_RUN_PREFIX) --workdir /app/src/libxml2-v2.9.2/$(EXTLIB_DIR_NAME) gcc:5.3 make
 ### NOTE: libxml requires gcc
 
+CC := clang
+CXX := clang++
 # CXX := $(CXX_GCC_84)
-CFLAGS := -g -fno-omit-frame-pointer
+CFLAGS := -g
 CFLAGS_ASAN := $(CFLAGS) -fsanitize=address
-# CFLAGS_ASAN := $(CFLAGS) -fsanitize=address -fsanitize=array-bounds,bool,builtin,enum,float-divide-by-zero,function,integer-divide-by-zero,null,object-size,return,returns-nonnull-attribute,shift,signed-integer-overflow,unreachable,vla-bound,vptr
 CFLAGS_NOASAN := $(CFLAGS)
 # MAKE := $(MAKE_GCC_OLD)
 
-.PHONY: $(TARGET) $(TARGET_NOASAN)
+all: $(TARGET) $(TARGET_NOASAN)
 	@
 
 clean:
-	rm -f $(TARGET) $(TARGET_NOASAN) $(LIBXML2_LIB_ORIG)
+	rm -f $(TARGET) $(TARGET_NOASAN) $(EXTLIB_LIB)
 
-$(LIBXML2_LIB_ORIG):
-	cd $(LIBXML2_DIR_NAME) && git clean -dfx
-	cd $(LIBXML2_DIR_NAME) && git checkout -f v2.9.2
-	cd $(LIBXML2_DIR_NAME) && ./autogen.sh
-	cd $(LIBXML2_DIR_NAME) && ./configure \
+$(EXTLIB_LIB):
+	cd $(EXTLIB_DIR_NAME) && git clean -dfx
+	cd $(EXTLIB_DIR_NAME) && git checkout -f v2.9.2
+	cd $(EXTLIB_DIR_NAME) && ./autogen.sh
+	cd $(EXTLIB_DIR_NAME) && CC=$(CC) CFLAGS="$(CFLAGS)" ./configure \
 		--without-python --with-threads=no \
 		--with-zlib=no --with-lzma=no
-	cd $(LIBXML2_DIR_NAME) && $(MAKE) CFLAGS="$(CFLAGS) -fPIC" -j $(nproc)
+	cd $(EXTLIB_DIR_NAME) && $(MAKE) CFLAGS="$(CFLAGS) -fPIC" -j $(nproc)
 
 define build_main
-	$(CXX) $(1) -I $(LIBXML2_DIR_NAME)/include \
-		$< $(FUZZER_TEST_SUITE_TARGET_CC) \
-		$(LIBXML2_LIB_ORIG) \
-		-static-libasan \
+	$(CXX) $(1) \
+		$(FUZZER_TEST_SUITE_TARGET_CC) $^ \
+		-I $(EXTLIB_DIR_NAME)/include \
 		-o $@
 endef
 
-$(TARGET): ../main.cpp $(LIBXML2_LIB_ORIG)
+$(TARGET): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_ASAN))
 
-$(TARGET_NOASAN): ../main.cpp $(LIBXML2_LIB_ORIG)
+$(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_NOASAN))
 
 

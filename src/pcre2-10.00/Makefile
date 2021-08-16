@@ -11,7 +11,7 @@ FUZZER_TEST_SUITE_TARGET_CC := $(PROJECT_ROOT_DIR)/fuzzer-test-suite/pcre2-10.00
 
 CXX := clang++
 CFLAGS := -g
-CXXFLAGS := -g
+CXXFLAGS := $(CFLAGS)
 CFLAGS_ASAN := $(CFLAGS) -fsanitize=address
 CFLAGS_NOASAN := $(CFLAGS)
 
@@ -42,6 +42,7 @@ endef
 
 $(TARGET): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_ASAN))
+	nm $@ | grep asan > /dev/null
 
 $(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_NOASAN))
