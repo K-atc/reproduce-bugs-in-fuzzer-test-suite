@@ -9,7 +9,7 @@ LIBXML2_LIB_DIR := $(EXTLIB_DIR_NAME)
 EXTLIB_LIB := $(LIBXML2_LIB_DIR)/libssl.a $(LIBXML2_LIB_DIR)/libcrypto.a
 FUZZER_TEST_SUITE_TARGET_CC := $(PROJECT_ROOT_DIR)/fuzzer-test-suite/openssl-1.0.1f/target.cc
 
-CFLAGS := -g
+CFLAGS := -g -O0
 CFLAGS_ASAN := $(CFLAGS) -fsanitize=address
 CFLAGS_NOASAN := $(CFLAGS)
 ASAN_OPTIONS := ASAN_OPTIONS=symbolize=1
@@ -19,10 +19,11 @@ all: $(TARGET) $(TARGET_NOASAN)
 
 clean:
 	rm -f $(TARGET) $(TARGET_NOASAN) $(EXTLIB_LIB)
+	cd $(EXTLIB_DIR_NAME) && make clean
 
 $(EXTLIB_LIB):
 	cd $(EXTLIB_DIR_NAME) && git checkout -f OpenSSL_1_0_1f 
-	cd $(EXTLIB_DIR_NAME) && CC=$(CC) CFLAGS="$(CFLAGS)" ./config && make clean && make
+	cd $(EXTLIB_DIR_NAME) && CC="$(CC) $(CFLAGS)" ./config && make
 
 runtime/:
 	ln -s $(PROJECT_ROOT_DIR)/fuzzer-test-suite/openssl-1.0.1f/runtime .
@@ -38,12 +39,14 @@ endef
 
 $(TARGET): ../main.cpp $(EXTLIB_LIB) runtime/
 	$(call build_main,$(CFLAGS_ASAN))
+	nm $@ | grep asan > /dev/null
 
 $(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB) runtime/
 	$(call build_main,$(CFLAGS_NOASAN))
+	nm $@ | grep SSL_CTX_
 
 $(INPUT_DIR):
-	mkdir -p $@xxd
+	mkdir -p $@
 
 
 input: $(INPUT_DIR)

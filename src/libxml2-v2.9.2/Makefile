@@ -14,7 +14,7 @@ MAKE_GCC_OLD := $(DOCKER_RUN_PREFIX) --workdir /app/src/libxml2-v2.9.2/$(EXTLIB_
 CC := clang
 CXX := clang++
 # CXX := $(CXX_GCC_84)
-CFLAGS := -g
+CFLAGS := -g -O2
 CFLAGS_ASAN := $(CFLAGS) -fsanitize=address
 CFLAGS_NOASAN := $(CFLAGS)
 # MAKE := $(MAKE_GCC_OLD)
@@ -43,9 +43,11 @@ endef
 
 $(TARGET): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_ASAN))
+	nm $@ | grep asan > /dev/null
 
 $(TARGET_NOASAN): ../main.cpp $(EXTLIB_LIB)
 	$(call build_main,$(CFLAGS_NOASAN))
+	nm $@ | grep xmlReadMemory
 
 
 reproduce: $(TARGET)
